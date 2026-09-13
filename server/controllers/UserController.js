@@ -3,19 +3,28 @@ import userModel from '../models/userModel.js'
 
 
 const clerkWebhooks = async (req, res) => {
-    try {
-        if (!process.env.CLERK_WEBHOOK_SECRET) {
-            return res.status(500).json({ success: false, message: 'CLERK_WEBHOOK_SECRET is not configured' })
-        }
+    if (!process.env.CLERK_WEBHOOK_SECRET) {
+        return res.status(500).json({ success: false, message: 'CLERK_WEBHOOK_SECRET is not configured' })
+    }
 
-        const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
-        const payload = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body)
-        const headers = {
-            'svix-id': req.headers['svix-id'],
-            'svix-timestamp': req.headers['svix-timestamp'],
-            'svix-signature': req.headers['svix-signature']
-        }
-        const { data, type } = webhook.verify(payload, headers)
+    const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+    const payload = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body)
+    const headers = {
+        'svix-id': req.headers['svix-id'],
+        'svix-timestamp': req.headers['svix-timestamp'],
+        'svix-signature': req.headers['svix-signature']
+    }
+
+    let event
+    try {
+        event = webhook.verify(payload, headers)
+    } catch (error) {
+        console.error('Clerk webhook signature verification failed:', error.message)
+        return res.status(400).json({ success: false, message: 'Webhook signature verification failed' })
+    }
+
+    try {
+        const { data, type } = event
 
         if (!data?.id || !type) {
             return res.status(400).json({ success: false, message: 'Invalid Clerk webhook payload' })
@@ -44,8 +53,8 @@ const clerkWebhooks = async (req, res) => {
 
         return res.status(200).json({ success: true, type })
     } catch (error) {
-        console.error('Clerk webhook failed:', error.message)
-        return res.status(400).json({ success: false, message: 'Webhook verification or processing failed' })
+        console.error('Clerk webhook database processing failed:', error.message)
+        return res.status(500).json({ success: false, message: 'Webhook database processing failed' })
     }
 }
 
