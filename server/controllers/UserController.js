@@ -2,81 +2,51 @@ import { Webhook } from 'svix'
 import userModel from '../models/userModel.js'
 
 
-// API controller Function to manage Clerk User Database
-//http://localhost:4000/api/user/webhooks
-
 const clerkWebhooks = async (req, res) => {
-
     try {
-
-        // create svix instance with clerk webhook secret
-
-        const whook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
-
-        await whook.verify(JSON.stringify(req.body), {
-            "svix-id": req.headers["svix-id"],
-            "svix-timestamp": req.headers["svix-timestamp"],
-            "svix-signature": req.headers["svix-signature"]
-        })
-
-        const { data, type } = req.body
-
-
-        switch (type) {
-            case "user.created": {
-
-                const userData = {
-                    clerkId: data.id,
-                    email: data.email_addresses[0].email_addresses,
-                    firstName: data.first_name,
-                    lastName: data.last_name,
-                    photo: data.image_url
-
-                }
-
-                await userModel.create(userData)
-                res.json({})
-
-
-                break;
-            }
-
-            case "user.updated": {
-
-                const userData = {
-
-                    email: data.email_addresses[0].email_addresses,
-                    firstName: data.first_name,
-                    lastName: data.last_name,
-                    photo: data.image_url
-                }
-
-                await userModel.findOneAndUpdate({ clerkId: data.id }, userData)
-                res.json({})
-                break;
-            }
-
-            case "user.deleted": {
-
-
-                await userModel.findOneAndDelete({ clerkId: data.id })
-                res.json({})
-
-                break;
-            }
-
-
-            default:
-                break;
+        if (!process.env.CLERK_WEBHOOK_SECRET) {
+            return res.status(500).json({ success: false, message: 'CLERK_WEBHOOK_SECRET is not configured' })
         }
 
+        const webhook = new Webhook(process.env.CLERK_WEBHOOK_SECRET)
+        const payload = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body)
+        const headers = {
+            'svix-id': req.headers['svix-id'],
+            'svix-timestamp': req.headers['svix-timestamp'],
+            'svix-signature': req.headers['svix-signature']
+        }
+        const { data, type } = webhook.verify(payload, headers)
+
+        if (!data?.id || !type) {
+            return res.status(400).json({ success: false, message: 'Invalid Clerk webhook payload' })
+        }
+
+        if (type === 'user.created' || type === 'user.updated') {
+            const email = data.email_addresses?.[0]?.email_address
+            if (!email) {
+                return res.status(400).json({ success: false, message: 'Clerk user has no email address' })
+            }
+
+            await userModel.findOneAndUpdate(
+                { clerkId: data.id },
+                {
+                    clerkId: data.id,
+                    email,
+                    firstName: data.first_name || undefined,
+                    lastName: data.last_name || undefined,
+                    photo: data.image_url || undefined
+                },
+                { upsert: true, new: true, setDefaultsOnInsert: true }
+            )
+        } else if (type === 'user.deleted') {
+            await userModel.findOneAndDelete({ clerkId: data.id })
+        }
+
+        return res.status(200).json({ success: true, type })
     } catch (error) {
-        console.log(error.message)
-        res.json({ success: false, message: error.message })
-
-
+        console.error('Clerk webhook failed:', error.message)
+        return res.status(400).json({ success: false, message: 'Webhook verification or processing failed' })
     }
-
 }
 
-export{clerkWebhooks}
+export { clerkWebhooks }

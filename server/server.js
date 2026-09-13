@@ -9,12 +9,10 @@ const PORT = process.env.PORT || 4000
 const app = express()
 
 // Intialize Middlewares
-app.use(express.json())
 app.use(cors())
 
 // Keep the health check independent of external services.
 app.get('/',(req,res)=> res.send("API Working"))
-app.use('/api/user',userRouter)
 app.use(async (req, res, next) => {
 	try {
 		await connectDB()
@@ -23,6 +21,9 @@ app.use(async (req, res, next) => {
 		next(error)
 	}
 })
+
+app.use('/api/user/webhooks', express.raw({ type: 'application/json' }), userRouter)
+app.use(express.json())
 
 app.use((error, req, res, next) => {
 	console.error('Backend request failed:', error.message)
