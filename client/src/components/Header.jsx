@@ -1,7 +1,21 @@
-import React from 'react'
+import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useContext } from 'react'
+import { AppContext } from '../context/context'
 import { assets } from '../assets/assets'
 
 const Header = () => {
+    const inputRef = useRef(null)
+    const navigate = useNavigate()
+    const { removeBackground } = useContext(AppContext)
+    const handleChange = async (event) => {
+        const file = event.target.files?.[0]
+        if (!file) return
+        await removeBackground(file)
+        navigate('/result')
+        event.target.value = ''
+    }
+
     return (
         <div className='flex items-center justify-between max-sm:flex-col-reverse gap-y-10 px-4 mt-10 lg:px-44 sm:mt-20'>
             {/* Header content goes here left side*/}
@@ -12,11 +26,11 @@ const Header = () => {
                     Upload your image and<br className='max-sm:hidden' /> remove the background in seconds.
                 </p>
                 <div>
-                    <input type="file" name="" id="upload1" hidden />
-                    <label className='inline-flex gap-3 px-8 py-3.5 rounded-full  cursor-pointer bg-gradient-to-r from-violet-600 to-fuchsia-500 m-auto hover:scale-105 transition-all duration-700' htmlFor="upload1">
+                    <input ref={inputRef} onChange={handleChange} accept="image/png,image/jpeg,image/webp" type="file" hidden />
+                    <button onClick={() => inputRef.current?.click()} className='inline-flex gap-3 px-8 py-3.5 rounded-full cursor-pointer bg-gradient-to-r from-violet-600 to-fuchsia-500 m-auto hover:scale-105 transition-all duration-700'>
                         <img width={20} src={assets.upload_btn_icon} alt=""></img>
                         <p className='text-white font-sm'>Upload Image</p>
-                    </label>
+                    </button>
                 </div>
             </div>
 
