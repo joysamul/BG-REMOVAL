@@ -32,8 +32,10 @@ const AppContextProvider = (props) => {
             }
 
             setResultImage(URL.createObjectURL(await response.blob()))
+            return true
         } catch (requestError) {
             setError(requestError.message)
+            return false
         } finally {
             setIsProcessing(false)
         }

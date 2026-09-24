@@ -22,7 +22,7 @@ const Result = () => {
           <div className='flex flex-col '>
             <p className='font-semibold text-gray-600 mb-2'>Background Removed </p>
             <div className='rounded-md border border-gray-300 h-full relative bg-layer overflow-hidden'>
-              <img className='w-full' src={resultImage || assets.image_wo_bg} alt="Background removed" />
+              {resultImage ? <img className='w-full' src={resultImage} alt="Background removed" /> : <div className='grid min-h-48 place-items-center p-6 text-center text-sm text-gray-500'>Upload an image to see the processed result.</div>}
               {isProcessing && <div className='absolute inset-0 grid place-items-center bg-white/70'>
                 <div className='border-4 border-violet-600 rounded-full h-12 w-12 border-t-transparent animate-spin'> </div>
               </div>}

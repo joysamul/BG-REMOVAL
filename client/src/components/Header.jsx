@@ -11,8 +11,8 @@ const Header = () => {
     const handleChange = async (event) => {
         const file = event.target.files?.[0]
         if (!file) return
-        await removeBackground(file)
-        navigate('/result')
+        const processed = await removeBackground(file)
+        if (processed) navigate('/result')
         event.target.value = ''
     }
 
