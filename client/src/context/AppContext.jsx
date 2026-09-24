@@ -32,7 +32,6 @@ const AppContextProvider = (props) => {
             }
 
             setResultImage(URL.createObjectURL(await response.blob()))
-            setCredit((current) => typeof current === 'number' ? Math.max(0, current - 1) : current)
         } catch (requestError) {
             setError(requestError.message)
         } finally {
