@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from '@clerk/react'
 import { AppContext } from './context'
 const AppContextProvider = (props) => {
     const [credit, setCredit] = useState(null)
@@ -8,7 +7,6 @@ const AppContextProvider = (props) => {
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState('')
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://bg-removal-js.vercel.app'
-    const { getToken } = useAuth()
 
     const removeBackground = async (file) => {
         setError('')
@@ -19,10 +17,8 @@ const AppContextProvider = (props) => {
         try {
             const formData = new FormData()
             formData.append('image', file)
-            const token = await getToken()
             const response = await fetch(`${backendUrl}/api/image/remove-background`, {
                 method: 'POST',
-                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
                 body: formData,
             })
 
