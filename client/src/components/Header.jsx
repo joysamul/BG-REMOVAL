@@ -7,7 +7,7 @@ import { assets } from '../assets/assets'
 const Header = () => {
     const inputRef = useRef(null)
     const navigate = useNavigate()
-    const { removeBackground } = useContext(AppContext)
+    const { removeBackground, error, isProcessing } = useContext(AppContext)
     const handleChange = async (event) => {
         const file = event.target.files?.[0]
         if (!file) return
@@ -27,10 +27,11 @@ const Header = () => {
                 </p>
                 <div>
                     <input ref={inputRef} onChange={handleChange} accept="image/png,image/jpeg,image/webp" type="file" hidden />
-                    <button onClick={() => inputRef.current?.click()} className='inline-flex gap-3 px-8 py-3.5 rounded-full cursor-pointer bg-gradient-to-r from-violet-600 to-fuchsia-500 m-auto hover:scale-105 transition-all duration-700'>
+                    <button disabled={isProcessing} onClick={() => inputRef.current?.click()} className='inline-flex gap-3 px-8 py-3.5 rounded-full cursor-pointer bg-gradient-to-r from-violet-600 to-fuchsia-500 m-auto hover:scale-105 transition-all duration-700 disabled:opacity-60'>
                         <img width={20} src={assets.upload_btn_icon} alt=""></img>
                         <p className='text-white font-sm'>Upload Image</p>
                     </button>
+                    {error && <p className='mt-3 max-w-sm text-sm text-red-600'>{error}</p>}
                 </div>
             </div>
 

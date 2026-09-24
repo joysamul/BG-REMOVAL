@@ -34,7 +34,7 @@ const AppContextProvider = (props) => {
             setResultImage(URL.createObjectURL(await response.blob()))
             return true
         } catch (requestError) {
-            setError(requestError.message)
+            setError(requestError.message || 'Unable to remove the background.')
             return false
         } finally {
             setIsProcessing(false)
