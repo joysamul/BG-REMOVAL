@@ -7,7 +7,7 @@ const AppContextProvider = (props) => {
     const [resultImage, setResultImage] = useState(null)
     const [isProcessing, setIsProcessing] = useState(false)
     const [error, setError] = useState('')
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://bg-removal-js.vercel.app'
     const { getToken } = useAuth()
 
     const removeBackground = async (file) => {
